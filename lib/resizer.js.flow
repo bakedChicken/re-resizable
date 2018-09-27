@@ -1,7 +1,6 @@
 /* @flow */
 
 import * as React from 'react';
-import * as ReactDOM from 'react-dom';
 
 const styles = {
   base: {
@@ -86,43 +85,23 @@ export type Props = {
   children: ?React.ChildrenArray<*>,
 };
 
-export default class Resizer extends React.Component<Props> {
-  componentDidMount() {
-    const thisNode = ReactDOM.findDOMNode(this);
-
-    if (thisNode) {
-      thisNode.addEventListener('mousedown', this.handleMouseDown);
-      thisNode.addEventListener('touchstart', this.handleMouseDown);
-    }
-  }
-
-  componentWillUnmount() {
-    const thisNode = ReactDOM.findDOMNode(this);
-
-    if (thisNode) {
-      thisNode.removeEventListener('mousedown', this.handleMouseDown);
-      thisNode.removeEventListener('touchstart', this.handleMouseDown);
-    }
-  }
-
-  handleMouseDown = (e: MouseEvent | TouchEvent) => {
-    this.props.onResizeStart(e, this.props.direction);
-  };
-
-  render(): React.Element<'div'> {
-    const { className, direction, replaceStyles, children } = this.props;
-    return (
-      <div
-        className={className}
-        style={{
-          ...styles.base,
-          ...styles[direction],
-          ...(replaceStyles || {}),
-        }}
-      >
-        {children}
-      </div>
-    );
-  }
-}
-
+export default (props: Props): React.Element<'div'> => {
+  return (
+    <div
+      className={props.className}
+      style={{
+        ...styles.base,
+        ...styles[props.direction],
+        ...(props.replaceStyles || {}),
+      }}
+      onMouseDown={(e: SyntheticMouseEvent<HTMLDivElement>) => {
+        props.onResizeStart(e, props.direction);
+      }}
+      onTouchStart={(e: SyntheticTouchEvent<HTMLDivElement>) => {
+        props.onResizeStart(e, props.direction);
+      }}
+    >
+      {props.children}
+    </div>
+  );
+};
