@@ -106,6 +106,7 @@ export default class Resizer extends React.Component<Props> {
   }
 
   handleMouseDown = (e: MouseEvent | TouchEvent) => {
+    e.stopPropagation();
     this.props.onResizeStart(e, this.props.direction);
   };
 
