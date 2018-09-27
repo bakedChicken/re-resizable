@@ -87,7 +87,7 @@ export type ResizeCallback = (
 ) => void;
 
 export type ResizeStartCallback = (
-  e: SyntheticMouseEvent<HTMLDivElement> | SyntheticTouchEvent<HTMLDivElement>,
+  e: MouseEvent | TouchEvent,
   dir: Direction,
   elementRef: React.ElementRef<'div'>,
 ) => void;
@@ -334,24 +334,24 @@ export default class Resizable extends React.Component<ResizableProps, State> {
   }
 
   onResizeStart = (
-    event: SyntheticMouseEvent<HTMLDivElement> | SyntheticTouchEvent<HTMLDivElement>,
+    event: MouseEvent | TouchEvent,
     direction: Direction,
   ) => {
     let clientX = 0;
     let clientY = 0;
-    if (event.nativeEvent instanceof MouseEvent) {
-      clientX = event.nativeEvent.clientX;
-      clientY = event.nativeEvent.clientY;
+    if (event instanceof MouseEvent) {
+      clientX = event.clientX;
+      clientY = event.clientY;
 
       // When user click with right button the resize is stuck in resizing mode
       // until users clicks again, dont continue if right click is used.
       // HACK: MouseEvent does not have `which` from flow-bin v0.68.
-      if ((event.nativeEvent: any).which === 3) {
+      if ((event: any).which === 3) {
         return;
       }
-    } else if (event.nativeEvent instanceof TouchEvent) {
-      clientX = event.nativeEvent.touches[0].clientX;
-      clientY = event.nativeEvent.touches[0].clientY;
+    } else if (event instanceof TouchEvent) {
+      clientX = event.touches[0].clientX;
+      clientY = event.touches[0].clientY;
     }
     if (this.props.onResizeStart) {
       this.props.onResizeStart(event, direction, (this.resizable: React.ElementRef<'div'>));
