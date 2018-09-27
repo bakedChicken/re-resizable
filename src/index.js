@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Resizer from './resizer';
 
-import type { Direction, OnStartCallback } from './resizer';
+import type { Direction } from './resizer';
 
 const userSelectNone = {
   userSelect: 'none',
@@ -185,10 +185,6 @@ const baseClassName = '__resizable_base__';
 
 export default class Resizable extends React.Component<ResizableProps, State> {
   resizable: React.ElementRef<'div'>;
-  onTouchMove: ResizeCallback;
-  onMouseMove: ResizeCallback;
-  onMouseUp: ResizeCallback;
-  onResizeStart: OnStartCallback;
   extendsProps: { [key: string]: any };
 
   static defaultProps = {
@@ -235,17 +231,6 @@ export default class Resizable extends React.Component<ResizableProps, State> {
     };
 
     this.updateExtendsProps(props);
-    this.onResizeStart = this.onResizeStart.bind(this);
-    this.onMouseMove = this.onMouseMove.bind(this);
-    this.onMouseUp = this.onMouseUp.bind(this);
-
-    if (typeof window !== 'undefined') {
-      window.addEventListener('mouseup', this.onMouseUp);
-      window.addEventListener('mousemove', this.onMouseMove);
-      window.addEventListener('mouseleave', this.onMouseUp);
-      window.addEventListener('touchmove', this.onMouseMove);
-      window.addEventListener('touchend', this.onMouseUp);
-    }
   }
 
   get parentNode(): HTMLElement {
@@ -317,18 +302,11 @@ export default class Resizable extends React.Component<ResizableProps, State> {
   }
 
   componentWillUnmount() {
-    if (typeof window !== 'undefined') {
-      window.removeEventListener('mouseup', this.onMouseUp);
-      window.removeEventListener('mousemove', this.onMouseMove);
-      window.removeEventListener('mouseleave', this.onMouseUp);
-      window.removeEventListener('touchmove', this.onMouseMove);
-      window.removeEventListener('touchend', this.onMouseUp);
-      const parent = this.parentNode;
-      const { base } = this;
-      if (!base || !parent) return;
-      if (!(parent instanceof HTMLElement) || !(base instanceof Node)) return;
-      parent.removeChild(base);
-    }
+    const parent = this.parentNode;
+    const { base } = this;
+    if (!base || !parent) return;
+    if (!(parent instanceof HTMLElement) || !(base instanceof Node)) return;
+    parent.removeChild(base);
   }
 
   get base(): ?HTMLElement {
@@ -355,10 +333,10 @@ export default class Resizable extends React.Component<ResizableProps, State> {
       : newSize;
   }
 
-  onResizeStart(
+  onResizeStart = (
     event: SyntheticMouseEvent<HTMLDivElement> | SyntheticTouchEvent<HTMLDivElement>,
     direction: Direction,
-  ) {
+  ) => {
     let clientX = 0;
     let clientY = 0;
     if (event.nativeEvent instanceof MouseEvent) {
@@ -400,9 +378,9 @@ export default class Resizable extends React.Component<ResizableProps, State> {
       resizeCursor: window.getComputedStyle(event.target).cursor,
       direction,
     });
-  }
+  };
 
-  onMouseMove(event: MouseEvent | TouchEvent) {
+  onResize = (event: MouseEvent | TouchEvent) => {
     if (!this.state.isResizing) return;
     const clientX = event instanceof MouseEvent ? event.clientX : event.touches[0].clientX;
     const clientY = event instanceof MouseEvent ? event.clientY : event.touches[0].clientY;
@@ -542,9 +520,9 @@ export default class Resizable extends React.Component<ResizableProps, State> {
     if (this.props.onResize) {
       this.props.onResize(event, direction, this.resizable, delta);
     }
-  }
+  };
 
-  onMouseUp(event: MouseEvent | TouchEvent) {
+  onResizeStop = (event: MouseEvent | TouchEvent) => {
     const { isResizing, direction, original } = this.state;
     if (!isResizing) return;
     const delta = {
@@ -558,7 +536,7 @@ export default class Resizable extends React.Component<ResizableProps, State> {
       this.setState(this.props.size);
     }
     this.setState({ isResizing: false, resizeCursor: 'auto' });
-  }
+  };
 
   get size(): NumberSize {
     let width = 0;
@@ -619,6 +597,8 @@ export default class Resizable extends React.Component<ResizableProps, State> {
             key={dir}
             direction={dir}
             onResizeStart={this.onResizeStart}
+            onResize={this.onResize}
+            onResizeStop={this.onResizeStop}
             replaceStyles={handleStyles && handleStyles[dir]}
             className={handleClasses && handleClasses[dir]}
           >

@@ -236,8 +236,8 @@ export default class Resizable extends React.Component<ResizableProps, State> {
 
     this.updateExtendsProps(props);
     this.onResizeStart = this.onResizeStart.bind(this);
-    this.onMouseMove = this.onMouseMove.bind(this);
-    this.onMouseUp = this.onMouseUp.bind(this);
+    this.onResize = this.onMouseMove.bind(this);
+    this.onResizeStop = this.onMouseUp.bind(this);
 
     if (typeof window !== 'undefined') {
       window.addEventListener('mouseup', this.onMouseUp);

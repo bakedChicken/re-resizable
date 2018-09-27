@@ -73,16 +73,26 @@ const styles = {
 
 export type Direction = 'top' | 'right' | 'bottom' | 'left' | 'topRight' | 'bottomRight' | 'bottomLeft' | 'topLeft';
 
-export type OnStartCallback = (
+export type OnResizeStartCallback = (
   e: SyntheticMouseEvent<HTMLDivElement> | SyntheticTouchEvent<HTMLDivElement>,
   dir: Direction,
+) => void;
+
+export type OnResizeCallback = (
+  e: SyntheticMouseEvent<HTMLDivElement> | SyntheticTouchEvent<HTMLDivElement>
+) => void;
+
+export type OnResizeStopCallback = (
+  e: SyntheticMouseEvent<HTMLDivElement> | SyntheticTouchEvent<HTMLDivElement>
 ) => void;
 
 export type Props = {
   direction: Direction,
   className?: string,
   replaceStyles?: { [key: string]: string | number },
-  onResizeStart: OnStartCallback,
+  onResizeStart: OnResizeStartCallback,
+  onResize: OnResizeCallback,
+  onResizeStop: OnResizeStopCallback,
   children: ?React.ChildrenArray<*>,
 };
 
@@ -91,8 +101,13 @@ export default class Resizer extends React.Component<Props> {
     const thisNode = ReactDOM.findDOMNode(this);
 
     if (thisNode) {
+      const { ownerDocument } = thisNode;
       thisNode.addEventListener('mousedown', this.handleMouseDown);
       thisNode.addEventListener('touchstart', this.handleMouseDown);
+      ownerDocument.addEventListener('mouseup', this.handleMouseUp);
+      ownerDocument.addEventListener('touchend', this.handleMouseUp);
+      ownerDocument.addEventListener('mousemove', this.handleMouseMove);
+      ownerDocument.addEventListener('touchmove', this.handleMouseMove);
     }
   }
 
@@ -100,14 +115,26 @@ export default class Resizer extends React.Component<Props> {
     const thisNode = ReactDOM.findDOMNode(this);
 
     if (thisNode) {
+      const { ownerDocument } = thisNode;
       thisNode.removeEventListener('mousedown', this.handleMouseDown);
       thisNode.removeEventListener('touchstart', this.handleMouseDown);
+      ownerDocument.removeEventListener('mouseup', this.handleMouseUp);
+      ownerDocument.removeEventListener('touchend', this.handleMouseUp);
+      ownerDocument.removeEventListener('mousemove', this.handleMouseMove);
+      ownerDocument.removeEventListener('touchmove', this.handleMouseMove);
     }
   }
 
   handleMouseDown = (e: MouseEvent | TouchEvent) => {
-    e.stopPropagation();
     this.props.onResizeStart(e, this.props.direction);
+  };
+
+  handleMouseUp = (e: MouseEvent | TouchEvent) => {
+    this.props.onResizeStop(e);
+  };
+
+  handleMouseMove = (e: MouseEvent | TouchEvent) => {
+    this.props.onResize(e);
   };
 
   render(): React.Element<'div'> {
